@@ -1,7 +1,12 @@
 package frc.robot;
 
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.TalonFX;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Timer;
 
 public final class CTREConfigs {
     public TalonFXConfiguration swerveAngleFXConfig = new TalonFXConfiguration();
@@ -57,5 +62,40 @@ public final class CTREConfigs {
 
         swerveDriveFXConfig.ClosedLoopRamps.DutyCycleClosedLoopRampPeriod = Constants.Swerve.closedLoopRamp;
         swerveDriveFXConfig.ClosedLoopRamps.VoltageClosedLoopRampPeriod = Constants.Swerve.closedLoopRamp;
+    }
+
+    public static boolean configureTalonFx(TalonFX motor, TalonFXConfiguration config) {
+        StatusCode motorStatus = StatusCode.StatusCodeNotInitialized;
+        for (int i = 0; i < (RobotBase.isReal() ? 5 : 1); i++) {
+            motorStatus = motor.getConfigurator().apply(config);
+            if (motorStatus.isOK()) break;
+            if (RobotBase.isReal()) Timer.delay(0.02);
+        }
+        if (!motorStatus.isOK())
+            System.out.println(
+                    "Could not apply configs to TalonFx ID: "
+                            + motor.getDeviceID()
+                            + ". Error code: "
+                            + motorStatus);
+        else System.out.println("TalonFX ID: " + motor.getDeviceID() + " - Successfully configured!");
+        return motorStatus.isOK();
+    }
+
+    public static boolean configureCANCoder(CANcoder cancoder, CANcoderConfiguration config) {
+        StatusCode cancoderStatus = StatusCode.StatusCodeNotInitialized;
+        for (int i = 0; i < (RobotBase.isReal() ? 5 : 1); i++) {
+            cancoderStatus = cancoder.getConfigurator().apply(config);
+            if (cancoderStatus.isOK()) break;
+            if (RobotBase.isReal()) Timer.delay(0.02);
+        }
+        if (!cancoderStatus.isOK())
+            System.out.println(
+                    "Could not apply configs to CANCoder ID: "
+                            + cancoder.getDeviceID()
+                            + ". Error code: "
+                            + cancoderStatus);
+        else
+            System.out.println("CANCoder ID: " + cancoder.getDeviceID() + " - Successfully configured!");
+        return cancoderStatus.isOK();
     }
 }
